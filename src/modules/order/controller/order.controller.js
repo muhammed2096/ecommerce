@@ -8,6 +8,32 @@ import orderModel from "../../../../database/models/order.model.js";
 import Stripe from 'stripe';
 const stripe = new Stripe('sk_test_sk_test_51OyLjB06k8V6miqkOwgi5UmAKs0xuFYClm4oN3pzOoOp9aOW8HNkk2JxjQu3qEiJ8AKslsWHY8QFMHpBLXjdG9aq00fLwb2UKS');
 
+async function card(e){
+    let cart = await cartModel.findById(e.client_reference_id)
+    if(!cart) return next(new appError("you don't have a cart to order :(", 404))
+    let user = await userModel.findOne({email:e.email})
+    let order = new orderModel({
+        user:user._id,
+        orderItems:cart.cartItems,
+        shippingAddress:e.metadata.shippingAddress,
+        totalOrderPrice:e.amount_total / 100,
+        paymentType:"card",
+        isPaid:true,
+        paidAt:Date.now()
+    })
+    await order.save()
+    let options = cart.cartItems.map((prod)=>{
+        return (
+            { updateOne : {
+                "filter" : { _id : prod.product }, 
+                "update" : { $inc : { sold:prod.quantity, quantity:-prod.quantity } }
+             } }
+        )
+    })
+    productModel.bulkWrite(options); 
+    await cartModel.findByIdAndDelete({user:user._id})
+    res.json({message:'success', order})
+}
 
 const createCashOrder = handleAsyncError(async (req, res, next)=>{
      
@@ -79,7 +105,7 @@ const createOnlineOrder = handleAsyncError((request, response) => {
       return;
     }
     if(event.type == 'checkout.session.completed'){
-        const checkoutSessionCompleted = event.data.object;
+        card(event.data.object)
         console.log("create order here...!");
     }else{
         console.log(`Unhandled event type ${event.type}`);
