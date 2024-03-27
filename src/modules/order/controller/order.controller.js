@@ -11,7 +11,7 @@ const stripe = new Stripe('sk_test_sk_test_51OyLjB06k8V6miqkOwgi5UmAKs0xuFYClm4o
 async function card(e){
     let cart = await cartModel.findById(e.client_reference_id)
     if(!cart) return next(new appError("you don't have a cart to order :(", 404))
-    let user = await userModel.findOne({email:e.email})
+    let user = await userModel.findOne({email:e.customer_email})
     let order = new orderModel({
         user:user._id,
         orderItems:cart.cartItems,
