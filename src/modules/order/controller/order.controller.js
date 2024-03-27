@@ -8,7 +8,7 @@ import orderModel from "../../../../database/models/order.model.js";
 import Stripe from 'stripe';
 const stripe = new Stripe('sk_test_sk_test_51OyLjB06k8V6miqkOwgi5UmAKs0xuFYClm4oN3pzOoOp9aOW8HNkk2JxjQu3qEiJ8AKslsWHY8QFMHpBLXjdG9aq00fLwb2UKS');
 
-async function card(e){
+async function card(e, res){
     let cart = await cartModel.findById(e.client_reference_id)
     if(!cart) return next(new appError("you don't have a cart to order :(", 404))
     let user = await userModel.findOne({email:e.customer_email})
