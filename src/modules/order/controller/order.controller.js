@@ -66,9 +66,29 @@ const createCheckOutSession = handleAsyncError(async (req, res, next)=>{
     })
     res.json({message:"success", session})
 })
+
+const createOnlineOrder = handleAsyncError((request, response) => {
+    const sig = request.headers['stripe-signature'].toString();
+  
+    let event;
+  
+    try {
+      event = stripe.webhooks.constructEvent(request.body, sig, 'whsec_UrBgjq7TXPZN4QKeI40UOOHisaVfOHvT');
+    } catch (err) {
+      response.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+    if(event.type == 'checkout.session.completed'){
+        const checkoutSessionCompleted = event.data.object;
+        console.log("create order here...!");
+    }else{
+        console.log(`Unhandled event type ${event.type}`);
+    }
+  })
 export {
     createCashOrder,
     getSpecificOrder,
     getAllOrders,
-    createCheckOutSession
+    createCheckOutSession,
+    createOnlineOrder
 }
