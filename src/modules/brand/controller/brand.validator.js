@@ -19,7 +19,7 @@ export const getBrandByIdSchema = Joi.object({
 })
 
 export const updateBrandSchema = Joi.object({
-    title: Joi.string().min(3).max(30).required(),
+    title: Joi.string().min(3).max(30),
     id: Joi.string().hex().length(24).required()
 })
 

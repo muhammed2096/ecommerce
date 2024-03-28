@@ -18,20 +18,25 @@ export const signUp = handleAsyncError(async (req, res, next) => {
 export const signIn = handleAsyncError(async (req, res, next) => {
   let { email, password } = req.body;
   let foundedUser = await userModel.findOne({ email });
-  const matched = await bcrypt.compare(password, foundedUser.password);
-  if (foundedUser && matched) {
-    let token = jwt.sign(
-      {
-        name: foundedUser.name,
-        userId: foundedUser._id,
-        role: foundedUser.role,
-      },
-      process.env.SECRET_KEY
-    );
-    
-    return res.json({ message: "success", token });
-  }
-  next(new appError("Incorrect Email or Password :(", 401));
+  if(foundedUser){
+    if(foundedUser.isVerfied){
+        let matched = bcrypt.compareSync(password, foundedUser.password)
+    if(matched){
+        let token = jwt.sign({
+          name: foundedUser.name,
+          userId: foundedUser._id,
+          role: foundedUser.role,
+        }, process.env.SECRET_KEY)
+        res.json({message:"welcome", token})
+    }else{ 
+        next(new appError(`Invalid password, try again later`, 400))
+    }
+    }else{
+        next(new appError("please verify your email first", 401))
+    }
+}else{
+    next(new appError("You have to register first", 400))
+}
 });
 
 export const verifyEmail = handleAsyncError(async (req, res, next)=>{

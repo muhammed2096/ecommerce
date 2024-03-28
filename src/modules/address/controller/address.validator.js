@@ -13,3 +13,4 @@ export const getAddressByIdSchema = Joi.object({
 export const deleteAddressSchema = Joi.object({
     id: Joi.string().hex().length(24).required()
 })
+

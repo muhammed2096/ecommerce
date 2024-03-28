@@ -23,9 +23,6 @@ export const paramsIdVal = Joi.object({
     id:Joi.string().hex().length(24).required()
 })
 
-export const getAllUserAccsSchema = Joi.object({
-    recoveryEmail:Joi.string().email().required()
-})
 
 export const forgotPasswordSchema = Joi.object({
     email:Joi.string().email().required()

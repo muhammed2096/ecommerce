@@ -10,9 +10,7 @@ export const getByIdSchema = Joi.object({
 })
 
 export const updateCartSchema = Joi.object({
-    text: Joi.string().min(1).max(200).trim(),
-    rate: Joi.number().min(0).max(5),
-    product:Joi.string().hex().length(24),
+    quantity:Joi.number().options({convert:false}),
     id: Joi.string().hex().length(24).required()
 })
 

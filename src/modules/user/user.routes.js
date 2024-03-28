@@ -10,7 +10,7 @@ const userRoutes = express.Router()
 
 userRoutes.route("/")
     .post(protectedRoutes, allowedTo("admin"),checkEmail,validation(addUserSchema), addUser)
-    .get(protectedRoutes, allowedTo("admin"),validation(addUserSchema),getAllUsers)
+    .get(protectedRoutes, allowedTo("admin"), getAllUsers)
 
     userRoutes.route("/:id")
     .get(protectedRoutes, allowedTo("admin"),validation(paramsIdVal), getAllUserById)
