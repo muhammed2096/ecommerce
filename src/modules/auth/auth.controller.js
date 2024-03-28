@@ -6,19 +6,20 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import { sendEmail } from "../../email/sendEmail.js";
 
-export const signUp = handleAsyncError(async (req, res) => {
-  let user = new userModel(req.body);
-  await user.save();
-  let verifyToken = jwt.sign(
-    { id: addedUser[0]._id, role: addedUser.role },
-    process.env.Verify_SECRET
-  );
-  sendEmail({
-    email,
-    api: `https://ecommerce-pxr2.onrender.com/api/v1/user/verify/${verifyToken}`,
-  });
-  res.json({ message: "Success", user });
-});
+// export const signUp = handleAsyncError(async (req, res) => {
+//   let user = new userModel(req.body);
+//   let added = await user.save();
+//   let verifyToken = jwt.sign(
+//     { id: added[0]._id, role: added.role },
+//     process.env.Verify_SECRET
+//   );
+//   sendEmail({
+//     email,
+//     api: `https://ecommerce-pxr2.onrender.com/api/v1/user/verify/${verifyToken}`,
+//   });
+//   !user && next(new appError('invalid data', 404))
+//   user && res.send({ msg: 'success', token })
+// });
 
 // export const signUp = handleAsyncError(async (req, res, next)=>{
 //   let {name, phone, role, email, password} = req.body
@@ -27,6 +28,18 @@ export const signUp = handleAsyncError(async (req, res) => {
 //   sendEmail({email, api:`http://localhost:3000/api/v1/user/verify/${verifyToken}`})
 //   res.json({message:"User added successfully", addedUser})
 // })
+
+export const signUp = handleAsyncError(async (req, res, next)=>{
+  let {firstName, lastName, phone, userName, recoveryEmail, dateOfBirth, role, email, password} = req.body
+  let existUser = await userModel.findOne({email})
+  if(existUser) return next(new appError("Email already exist..!", 409))
+  const hashedPassword = bcrypt.hashSync(password, parseInt(process.env.SALTROUNDS))
+  const addedUser =  await userModel.insertMany({firstName, lastName, phone, userName, recoveryEmail, dateOfBirth, role, email, password:hashedPassword})
+  let verifyToken = jwt.sign({id: addedUser[0]._id, role:addedUser.role}, process.env.Verify_SECRET)
+  sendEmail({email, api:`https://ecommerce-pxr2.onrender.com/api/v1/user/verify/${verifyToken}`})
+  res.json({message:"User added successfully", addedUser})   
+})
+
 
 export const signIn = handleAsyncError(async (req, res, next) => {
   let { email, password } = req.body;

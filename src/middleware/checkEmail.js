@@ -4,8 +4,9 @@ import { handleAsyncError } from "./handleAsyncError.js";
 
 
 export const checkEmail = handleAsyncError(async (req, res, next)=>{
-    let user = await userModel.findOne({email:req.body.email})
-    if(user) return next(new appError('Email is already exist', 409))
+    let {email} = req.body
+    let checkEmail = await userModel.findOne({email})
+    if(checkEmail) return next(new appError('Email already Exist',409))
     next()
 })
 
