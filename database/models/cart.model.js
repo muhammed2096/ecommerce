@@ -18,7 +18,7 @@ const schema = new mongoose.Schema({
     }],
     totalPrice:Number,
     discount:Number,
-    totalPriceAfterDiscound:Number
+    totalPriceAfterDiscount:Number
 },{
     timestamps:true
 })

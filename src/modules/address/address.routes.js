@@ -2,6 +2,7 @@ import express from "express"
 import { validation } from "../../middleware/validation.js"
 import { addAddress, getLoggedUserAddress, removeAddress } from "./controller/address.controller.js"
 import { addAddressSchema, deleteAddressSchema } from "./controller/address.validator.js"
+import { allowedTo, protectedRoutes } from "../auth/auth.controller.js"
 
 
 
@@ -9,11 +10,11 @@ import { addAddressSchema, deleteAddressSchema } from "./controller/address.vali
 const addressRoutes = express.Router()
 
 addressRoutes.route("/")
-    .patch(validation(addAddressSchema), addAddress)
-    .get(getLoggedUserAddress)
+    .patch(protectedRoutes, allowedTo("user"),validation(addAddressSchema), addAddress)
+    .get(protectedRoutes, allowedTo("user"),getLoggedUserAddress)
 
 
 addressRoutes.route("/:id")
-    .delete(validation(deleteAddressSchema), removeAddress)    
+    .delete(protectedRoutes, allowedTo("user", "admin"),validation(deleteAddressSchema), removeAddress)    
 
 export default addressRoutes

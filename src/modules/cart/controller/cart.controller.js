@@ -1,9 +1,9 @@
 import { handleAsyncError } from "../../../middleware/handleAsyncError.js";
 import { appError } from "../../../utilties/appError.js";
-import { deleteOne } from "../../handler/apiHandler.js";
 import { apiFeatures } from "../../../utilties/apiFeature.js";
 import cartModel from "../../../../database/models/cart.model.js";
 import productModel from "../../../../database/models/product.model.js";
+import couponModel from "../../../../database/models/coupon.model.js";
 
 
 function calcPrice(cart){
@@ -39,6 +39,20 @@ const addNewCart = handleAsyncError(async (req, res, next)=>{
         next(new appError('you have already a cart :)'))
     
 })
+const applyCoupon = handleAsyncError(async (req,res,next)=>{
+    let coupon = await couponModel.findOne({
+        code:req.body.coupon,
+        expires:{$gte:Date.now()}
+    })
+    if(!coupon) return next(new appError("invalid coupon", 401));
+    let cart = await cartModel.findOne({user:req.user._id});
+    if(!cart) return next(new appError("invalid cart", 401))
+    let totalPriceAfterDiscount = cart.totalPrice - (cart.totalPrice * cart.discount) / 100;
+    cart.totalPriceAfterDiscount = totalPriceAfterDiscount
+    cart.discount = coupon.discount
+    await cart.save()
+    res.json({message:"success", cart})
+})
 
 const getCart = handleAsyncError(async (req, res, next)=>{
     let features = new apiFeatures(cartModel.findOne({user:req.user._id}), req.query).pagination().filter().sort().fields().keyword()
@@ -51,12 +65,13 @@ const removeCartItem = handleAsyncError(async (req, res, next)=>{
     res.json({message:"deleted", cart})
 })
 
-const getAllReviewById = handleAsyncError(async (req, res)=>{
-    let review = await cartModel.findById(req.params.id);
-    res.json({message:"Success", review})
+const clearUserCart = handleAsyncError(async (req, res, next)=>{
+    let cart = await cartModel.findOneAndDelete({user:req.user._id})
+    cart && res.json({message:"success", cart});
+    !cart && next(new appError("cart not found", 404))
 })
 
-const updateCart = handleAsyncError(async (req, res, next)=>{
+const updateQuantity = handleAsyncError(async (req, res, next)=>{
     let product = await productModel.findById(req.body.product).select("price")
     !product && next(new appError('product not found', 404))
     req.body.price = product.price 
@@ -73,13 +88,13 @@ const updateCart = handleAsyncError(async (req, res, next)=>{
 }
 )
 
-const deleteReview = deleteOne(cartModel)
+
 
 export {
     addNewCart,
     getCart,
     removeCartItem,
-    getAllReviewById,
-    updateCart,
-    deleteReview 
+    updateQuantity,
+    applyCoupon,
+    clearUserCart
 }

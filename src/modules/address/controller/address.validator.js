@@ -10,13 +10,6 @@ export const getAddressByIdSchema = Joi.object({
     id: Joi.string().hex().length(24).required()
 })
 
-export const updateAddressSchema = Joi.object({
-    id:Joi.string().hex().length(24).required(),
-    street:Joi.string().trim(),
-    phone:Joi.string().trim(),
-    city:Joi.string().trim()
-})
-
 export const deleteAddressSchema = Joi.object({
     id: Joi.string().hex().length(24).required()
 })

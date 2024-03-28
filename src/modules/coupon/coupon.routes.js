@@ -1,18 +1,19 @@
 import express from "express"
 import { validation } from "../../middleware/validation.js"
-import { addCoupon, deleteCoupon, getAllCoupon, getAllCouponById, updateCoupon } from "./controller/coupon.controller.js"
+import { addCoupon, deleteCoupon, getAllCoupon, getCouponById, updateCoupon } from "./controller/coupon.controller.js"
 import { addCouoponSchema, deleteCouponSchema, getCouponByIdSchema, updateCouponSchema } from "./controller/coupon.validator.js"
+import { allowedTo, protectedRoutes } from "../auth/auth.controller.js"
 
 
 const couponRoutes = express.Router()
 
 couponRoutes.route("/")
-    .post(validation(addCouoponSchema), addCoupon)
-    .get(getAllCoupon)
+    .post(protectedRoutes, allowedTo("admin"), validation(addCouoponSchema), addCoupon)
+    .get(protectedRoutes, allowedTo("admin"), getAllCoupon)
 
     couponRoutes.route("/:id")
-    .get(validation(getCouponByIdSchema), getAllCouponById)
-    .patch(validation(updateCouponSchema), updateCoupon)
-    .delete(validation(deleteCouponSchema), deleteCoupon)    
+    .get(protectedRoutes, allowedTo("admin"), validation(getCouponByIdSchema), getCouponById)
+    .patch(protectedRoutes, allowedTo("admin"), validation(updateCouponSchema), updateCoupon)
+    .delete(protectedRoutes, allowedTo("admin"), validation(deleteCouponSchema), deleteCoupon)    
 
 export default couponRoutes

@@ -20,7 +20,7 @@ const getAllCoupon = handleAsyncError(async (req, res, next)=>{
     res.json({message:"Success",page:features.pageNumber, allCoupon})
 })
 
-const getAllCouponById = handleAsyncError(async (req, res, next)=>{
+const getCouponById = handleAsyncError(async (req, res, next)=>{
     let coupon = await couponModel.findById(req.params.id);
     let url = await QRCode.toDataURL(coupon.code)
     res.json({message:"Success", coupon, url})
@@ -38,7 +38,7 @@ const deleteCoupon = deleteOne(couponModel)
 export {
     addCoupon,
     getAllCoupon,
-    getAllCouponById,
+    getCouponById,
     updateCoupon,
     deleteCoupon 
 }
