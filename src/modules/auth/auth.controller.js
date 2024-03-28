@@ -7,17 +7,13 @@ import nodemailer from "nodemailer";
 import { sendEmail } from "../../email/sendEmail.js";
 
 export const signUp = handleAsyncError(async (req, res, next) => {
-  let user = new userModel(req.body)
-  await user.save()
-  let token = jwt.sign({ userId: user._id, role: user.role }, process.env.SECRET_KEY)
-  sendEmail({
-      email,
-      api: `https://ecommerce-pxr2.onrender.com/api/v1/user/verify/${verifyToken}`,
-    });
-  !user && next(new appError('invalid data', 404))
-  user && res.send({ msg: 'success', token })
-});
-
+    let user = new userModel(req.body)
+    await user.save()
+    let token = jwt.sign({ userId: user._id, role: user.role }, process.env.SECERET_KEY)
+    sendEmail({email, api: `https://ecommerce-pxr2.onrender.com/api/v1/user/verify/${verifyToken}`});
+    !user && next(new appError('invalid data', 404))
+    user && res.send({ msg: 'success', token })
+})
 
 
 export const signIn = handleAsyncError(async (req, res, next) => {
