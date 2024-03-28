@@ -10,7 +10,7 @@ export const signUpSchema = Joi.object({
     role:Joi.string().valid('user', 'admin')
 })
 export const signInSchema = Joi.object({
-    email:Joi.string().email(),
+    email:Joi.string().email().required(),
     password: Joi.string().pattern(/^[A-Z][a-z0-9#@]{8,40}$/).required()
 })
 

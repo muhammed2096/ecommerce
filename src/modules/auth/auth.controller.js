@@ -6,12 +6,10 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer"
 import {sendEmail} from "../../email/sendEmail.js"
 
-export const signUp = handleAsyncError(async (req, res, next) => {
-  let foundedUser = await userModel.findOne({ email: req.body.email });
-  if (foundedUser) return next(new appError("Email already exist :(", 409));
+export const signUp = handleAsyncError(async (req, res) => {
   let user = new userModel(req.body);
   await user.save();
-  sendEmail({email, api:`http://localhost:3000/api/v1/user/verify/${verifyToken}`})
+  sendEmail({email, api:`https://ecommerce-pxr2.onrender.com/api/v1/user/verify/${verifyToken}`})
   res.json({ message: "Success", user });
 });
 
@@ -41,7 +39,7 @@ export const signIn = handleAsyncError(async (req, res, next) => {
 
 export const verifyEmail = handleAsyncError(async (req, res, next)=>{
   let {token} = req.params
-  jwt.verify(token, process.env.Verify_SECRET, async (err, decoded)=>{
+  jwt.verify(token, process.env.VERIFY_SECRET, async (err, decoded)=>{
       if(err) return next(new appError("You have to register first", 401))
       let verifiedUser = await userModel.findByIdAndUpdate(decoded.id, {isVerfied: true}, {new: true})
       res.json({message:"Success", verifiedUser})
