@@ -6,6 +6,7 @@ import { signInSchema, signUpSchema } from './auth.validation.js'
 import { checkEmail } from '../../middleware/checkEmail.js'
 
 
+
 const authRoutes = express.Router()
 
 

@@ -8,3 +8,5 @@ export const checkEmail = handleAsyncError(async (req, res, next)=>{
     if(user) return next(new appError('Email is already exist', 409))
     next()
 })
+
+ 
