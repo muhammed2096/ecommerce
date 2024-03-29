@@ -1,20 +1,17 @@
 import express from 'express'
-import { forgotPassword, resetPassword, signIn, signUp, verifyEmail } from './auth.controller.js'
-import { forgotPasswordSchema, resetPasswordSchema } from '../user/controller/user.validator.js'
-import { validation } from '../../middleware/validation.js'
-import { signInSchema, signUpSchema } from './auth.validation.js'
+import { validation } from './../../../src/middleware/validation.js'
 import { checkEmail } from '../../middleware/checkEmail.js'
 
+import { changePassword, checkCode, forgetPassword, isVerify, protectedRoutes, resetPassword, signIn, signUp } from './auth.controller.js'
+import { changePasswordVal, checkCodeVal, forgetPasswordVal, isverifyVal, resetPasswordVal, signInValidation, signUpValidation } from './auth.validation.js'
+const authRouter = express.Router()
 
+authRouter.post('/signUp', validation(signUpValidation), checkEmail, signUp)
+authRouter.post('/signIn', validation(signInValidation), signIn)
+authRouter.patch('/changedPassword', protectedRoutes, validation(changePasswordVal), changePassword)
+authRouter.post('/verification', protectedRoutes, validation(isverifyVal), isVerify)
+authRouter.post('/forgetPassword', validation(forgetPasswordVal), forgetPassword)
+authRouter.post('/checkCode', validation(checkCodeVal), checkCode)
+authRouter.post('/resetPassword', validation(resetPasswordVal), resetPassword)
 
-const authRoutes = express.Router()
-
-
-authRoutes.post('/signup',validation(signUpSchema), checkEmail, signUp)
-authRoutes.post('/signin',validation(signInSchema), signIn)
-authRoutes.get("/verify/:token", verifyEmail)
-authRoutes.post("/forgotPassword",validation(forgotPasswordSchema), forgotPassword)
-authRoutes.post("/resetPassword",validation(resetPasswordSchema), resetPassword)
-
-
-export default authRoutes
+export default authRouter

@@ -1,20 +1,19 @@
-import express from "express"
-import { addCategory, deleteCategory, getAllCategories, getAllCategoryById, updateCategory } from "./controller/category.controller.js"
-import { validation } from "../../middleware/validation.js"
-import { addCategorySchema, deleteCategorySchema, getCategoryByIdSchema, updateCategorySchema } from "./controller/category.validator.js"
-import { uploadSingle } from "../../utilties/fileUpload.js"
-import subCategoryRoutes from "../subCategory/subCategory.routes.js"
-import { allowedTo, protectedRoutes } from "../auth/auth.controller.js"
-
-const categoryRoutes = express.Router()
-categoryRoutes.use("/:category/subCategory", subCategoryRoutes)
-categoryRoutes.route("/")
-    .post(protectedRoutes, allowedTo("admin"),uploadSingle('image'), validation(addCategorySchema), addCategory)
-    .get(getAllCategories)
-
-    categoryRoutes.route("/:id")
-    .get(protectedRoutes, allowedTo("admin"),validation(getCategoryByIdSchema), getAllCategoryById)
-    .patch(protectedRoutes, allowedTo("admin"),validation(updateCategorySchema), updateCategory)
-    .delete(protectedRoutes, allowedTo("admin"),validation(deleteCategorySchema), deleteCategory)    
-
-export default categoryRoutes
+import express from 'express'
+import { validation } from './../../middleware/validation.js'
+import { addCategory, deleteCategory, getAllCategory, getSingleCategory, updateCategory } from './controller/category.controller.js'
+import { addCategoryValidation, paramValidation, updateCategoryValidation } from './controller/category.validator.js'
+import { allowedTo, protectedRoutes } from '../auth/auth.controller.js'
+import subCategoryRouter from '../subCategory/subCategory.routes.js'
+import { uploadsingleFile } from '../../utilties/fileUpload.js'
+const categoryRouter = express.Router()
+categoryRouter.use('/:category/subCategory', subCategoryRouter)
+categoryRouter
+    .route('/')
+    .post(protectedRoutes, allowedTo('admin'), uploadsingleFile('imageCover'), validation(addCategoryValidation), addCategory)
+    .get(getAllCategory)
+categoryRouter
+    .route('/:id')
+    .get(validation(paramValidation), getSingleCategory)
+    .put(protectedRoutes, allowedTo('admin'), uploadsingleFile('imageCover'), validation(updateCategoryValidation), updateCategory)
+    .delete(protectedRoutes, allowedTo('admin'), validation(paramValidation), deleteCategory)
+export default categoryRouter

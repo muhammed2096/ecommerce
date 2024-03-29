@@ -1,43 +1,19 @@
-import mongoose from "mongoose"
-import { appError } from "./appError.js";
-import multer from "multer";
+import multer from 'multer'
+import { appError } from './appError.js'
 
-
-export const uploadFile = ()=>{
-    const storage = multer.diskStorage({
-        destination: function (req, file, cb) {
-          cb(null, 'uploads')
-        },
-        filename: function (req, file, cb) {
-          cb(null, new mongoose.Types.ObjectId + '-' + file.originalname)
+export const fileUpload = ()=>{
+    const storage = multer.diskStorage({})
+    function fileFilter (req, file, cb) {
+        if(file.mimetype.startsWith('image')){
+            cb(null, true)
+        }else {
+            cb(new appError('image only', 401), false)
         }
-      });
-      
-      function fileFilter (req, file, cb) {
 
-        // The function should call `cb` with a boolean
-        // to indicate if the file should be accepted
-      if(file.mimetype.startsWith("image")){
-          cb(null, true)
-      }else{
-         cb(new appError("Invalid image type", 401), false)
-      }
-        // To reject this file pass `false`, like so:
-       
-      
-        // To accept the file pass `true`, like so:
-      
-      
-        // You can always pass an error if something goes wrong:
-        // cb(new Error('I don\'t have a clue!'))
-      
-      }
-      const upload = multer({ storage, fileFilter })
-     
-      return upload
-  
+        }
+    const upload = multer({ storage: storage ,fileFilter})
+    return upload
 }
-
-export const uploadSingle = (fieldName)=> uploadFile().single(fieldName);
-export const uploadArray = (fieldName)=> uploadFile().array(fieldName, 10);
-export const uploadFields = (fieldName)=> uploadFile().fields(fieldName);
+export const uploadsingleFile = fieldName => fileUpload().single(fieldName)
+export const uploadArrayFile = fieldName => fileUpload().array(fieldName,10)
+export const uploadFields = fieldName => fileUpload().fields(fieldName)

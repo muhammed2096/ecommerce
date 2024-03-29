@@ -1,19 +1,23 @@
-import express from "express"
-import { validation } from "../../middleware/validation.js"
-import { addReview, deleteReview, getAllReview, getAllReviewById, updateReview } from "./controller/review.controller.js"
-import { addReviewSchema, deleteReviewSchema, getReviewByIdSchema, updateReviewSchema } from "./controller/review.validator.js"
-import { allowedTo, protectedRoutes } from "../auth/auth.controller.js"
+import express from 'express'
+import { validation } from '../../middleware/validation.js'
+
+import { isVerify } from '../../middleware/isVerify.js'
+import { allowedTo, protectedRoutes } from '../auth/auth.controller.js'
+import { addReview, deleteReview, getAllreview, getSinglereview, updateReview } from './controller/review.controller.js'
+import { addReviewValidation, paramValidation, updateReviewValidation } from './controller/review.validator.js'
+
+const reviewRouter = express.Router()
+
+reviewRouter
+    .route('/')
+    .post(protectedRoutes, isVerify, validation(addReviewValidation), allowedTo('user'), addReview)
+    .get(getAllreview)
 
 
-const reviewRoutes = express.Router()
+reviewRouter.route('/:id')
+    .get(getSinglereview)
+    .put(protectedRoutes,  isVerify,validation(updateReviewValidation), allowedTo('user'), updateReview)
+    .delete(protectedRoutes,  isVerify,validation(paramValidation), allowedTo('user', 'admin'), deleteReview)
 
-reviewRoutes.route("/")
-    .post(protectedRoutes, allowedTo("user"),validation(addReviewSchema), addReview)
-    .get(getAllReview)
 
-    reviewRoutes.route("/:id")
-    .get(protectedRoutes, allowedTo("user"),validation(getReviewByIdSchema), getAllReviewById)
-    .patch(protectedRoutes, allowedTo("user"),validation(updateReviewSchema), updateReview)
-    .delete(protectedRoutes, allowedTo("user"),validation(deleteReviewSchema), deleteReview)    
-
-export default reviewRoutes
+export default reviewRouter

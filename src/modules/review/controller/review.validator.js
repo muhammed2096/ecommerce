@@ -1,22 +1,24 @@
-import Joi from "joi"
 
-export const addReviewSchema = Joi.object({
-    text: Joi.string().min(1).max(200).required().trim(),
-    rate: Joi.number().min(0).max(5).required(),
-    product:Joi.string().hex().length(24).required()
-})
+import joi from 'joi'
 
-export const getReviewByIdSchema = Joi.object({
-    id: Joi.string().hex().length(24).required()
-})
 
-export const updateReviewSchema = Joi.object({
-    text: Joi.string().min(1).max(200).trim(),
-    rate: Joi.number().min(0).max(5),
-    product:Joi.string().hex().length(24),
-    id: Joi.string().hex().length(24).required()
-})
 
-export const deleteReviewSchema = Joi.object({
-    id: Joi.string().hex().length(24).required()
+const addReviewValidation = joi.object({
+    text: joi.string().min(3).max(200).trim().required(),
+    product: joi.string().hex().length(24).required(),
+    rate: joi.number().min(1).max(5).required()
 })
+const paramValidation = joi.object({
+    id: joi.string().hex().length(24).required()
+})
+const updateReviewValidation = joi.object({
+    id: joi.string().hex().length(24).optional(),
+    text: joi.string().min(3).max(200).trim().optional(),
+    product: joi.string().hex().length(24).optional(),
+    rate: joi.number().min(1).max(5).optional()
+})
+export {
+    addReviewValidation,
+    paramValidation,
+    updateReviewValidation
+}

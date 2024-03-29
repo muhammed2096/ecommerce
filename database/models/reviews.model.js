@@ -3,29 +3,25 @@ import mongoose from "mongoose";
 const schema = new mongoose.Schema({
     text:{
         type:String,
-        required:true,
-        trim:true,
-        unique:true
-    },
-    createdBy:{
+        minLength:[2,'review is too short'],
+        maxLength:[200,'review is too long']
+    },    
+    user:{
         type:mongoose.Types.ObjectId,
-        ref:"User"
+        ref:'user',
     },
     product:{
         type:mongoose.Types.ObjectId,
-        ref:"Product"
+        ref:'product',
     },
-    user:{
-        type:mongoose.Types.ObjectId,
-        ref:"User"
+    rate:{
+        type: Number,
+        required:true
     }
-},{
-    timestamps:true
+},{ timestamps: true })
+
+schema.pre(/^find/,function(){
+    this.populate('user','name')
 })
 
-schema.pre(/^find/, function(){
-    this.populate('User', 'name')
-})
-
-const reviewModel = mongoose.model("Review", schema);
-export default reviewModel
+export const reviewModel = mongoose.model('review',schema)

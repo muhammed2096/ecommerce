@@ -1,31 +1,33 @@
 import mongoose from "mongoose";
 
 const schema = new mongoose.Schema({
-    title:{
-        type:String,
-        required:true,
-        minLength:[3, "title is too short!"],
-        maxLength:[30, "title is too long"],
+    name: {
+        type: String,
+        unique:[true,'name already userd'],
         trim:true,
-        unique:true
+        required:true,
+        minLength:[2,'name is too short'],
+        maxLength:[30,'name is too long']
     },
-    slug:{
+    slug: {
+        type: String,
+        lowercase: true,
+        required: true,
+    },
+    imageCover:{
         type:String,
         required:true,
-        lowercase:true
-    },
-    image:{
-        type:String,
+        trim:true
     },
     createdBy:{
         type:mongoose.Types.ObjectId,
-        ref:"User"
+        ref:'user'
     }
-},{
-    timestamps:true
+    
+},{ timestamps: true })
+
+schema.post('init',function(doc){
+    doc.image = process.env.BASE_URL + 'uploads/' + doc.image
 })
-schema.post("init", function(doc){
-    doc.image = process.env.BASE_URL +"uploads/"+ doc.image
-})
-const categoryModel = mongoose.model("Category", schema);
-export default categoryModel
+
+export const categoryModel = mongoose.model('category',schema)

@@ -1,52 +1,46 @@
-import { handleAsyncError } from "../../../middleware/handleAsyncError.js";
-import { appError } from "../../../utilties/appError.js";
-import { deleteOne } from "../../handler/apiHandler.js";
-import userModel from "../../../../database/models/user.model.js";
+import { userModel } from '../../../../database/models/user.model.js'
+import { catchError } from '../../../middleware/catchError.js'
+import { apiFeatures } from '../../../utilties/apiFeature.js'
+import { appError } from '../../../utilties/appError.js'
 
 
 
-
-
-const addUser = handleAsyncError(async (req, res)=>{
-    let user = await userModel.findOne({email:req.body.email})
-    if(user) return next(new appError("Email is already exist :(", 409))
-    let preUser = new userModel(req.body);
-    let added = await preUser.save()
-    res.json({message:"Success", added})
+const addUser = catchError(async (req, res, next) => {
+    let user = new userModel(req.body)
+    await user.save()
+    !user && next(new appError('invalid data', 404))
+    user && res.send({ msg: 'success', user: { name: user.name, email: user.email } })
+})
+const updateUser = catchError(async (req, res, next) => {
+    let { name, role } = req.body
+    let updateUser = await userModel.findByIdAndUpdate(req.user._id, { name, role }, { new: true })
+    console.log(updateUser);
+    res.send({ msg: "success", updateUser })
 })
 
-const getAllUsers = handleAsyncError(async (req, res)=>{
-    let allUsers = await userModel.find();
-    res.json({message:"Success", allUsers})
+const deleteUser = catchError(async (req, res, next) => {
+    await userModel.findByIdAndDelete(req.user._id)
+    res.send({ msg: "success" })
 })
 
-const getAllUserById = handleAsyncError(async (req, res)=>{
-    let user = await userModel.findById(req.params.id);
-    res.json({message:"Success", user})
+const getUsers = catchError(async (req, res, next) => {
+    let apiFeature = new apiFeatures(userModel.find(), req.query)
+        .pagenation().fields().search('name','email').sort().filter()
+    let users = await apiFeature.mongoseQuery
+    res.send({ msg: "success", pageNumber: apiFeature.pageNumber, users })
 })
 
-const updateUser = handleAsyncError(async (req, res)=>{
-    let updatedUser = await userModel.findByIdAndUpdate(req.params.id, req.body, {new:true})
-    updatedUser && res.json({message:"Success", updatedUser})
-    !updatedUser && next(new appError("User not found ! :(", 401))   
-}
-)
-const changePassword = handleAsyncError(async (req, res)=>{
-    let {id} = req.params
-    req.body.changePasswordAt = Date.now()
-    let updatedUser = await userModel.findOneAndUpdate({_id:id}, req.body, {new:true})
-    updatedUser && res.json({message:"Success", updatedUser})
-    !updatedUser && next(new appError("User not found ! :(", 401))   
-}
-)
+const getSingleUser = catchError(async (req, res, next) => {
+    let user = await userModel.findById(req.params.id)
+    res.send({ msg: "success", user })
+})
 
-const deleteUser = deleteOne(userModel)
+
 
 export {
     addUser,
-    getAllUsers,
-    getAllUserById,
     updateUser,
     deleteUser,
-    changePassword
+    getUsers,
+    getSingleUser
 }

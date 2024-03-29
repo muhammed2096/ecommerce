@@ -1,21 +1,22 @@
-import express from "express"
-import { addUser, changePassword, deleteUser, getAllUserById, getAllUsers, updateUser } from "./controller/user.controller.js"
-import { allowedTo, protectedRoutes } from "../auth/auth.controller.js"
-import { addUserSchema, paramsIdVal, updateSchema } from "./controller/user.validator.js"
-import { validation } from "../../middleware/validation.js"
-import { changePasswordSchema } from "../auth/auth.validation.js"
-import { checkEmail } from "../../middleware/checkEmail.js"
+import express from 'express'
+import {validation} from '../../middleware/validation.js'
 
-const userRoutes = express.Router()
+import {checkEmail} from './../../middleware/checkEmail.js'
+import { allowedTo, protectedRoutes } from '../auth/auth.controller.js'
+import { addUser, deleteUser, getSingleUser, getUsers, updateUser } from './controller/user.controller.js'
+import { addUserVal, paramsIdVal, updateUserVal } from './controller/user.validator.js'
+const userRouter = express.Router()
 
-userRoutes.route("/")
-    .post(protectedRoutes, allowedTo("admin"),checkEmail,validation(addUserSchema), addUser)
-    .get(protectedRoutes, allowedTo("admin"), getAllUsers)
+userRouter
+.route('/')
+.post(protectedRoutes,validation(addUserVal),checkEmail,allowedTo('admin'),addUser)
+.get(protectedRoutes,allowedTo('admin'),getUsers) 
+userRouter
+.route('/:id')
+.get(protectedRoutes,validation(paramsIdVal),allowedTo('admin','user'),getSingleUser)
+.delete(protectedRoutes,validation(paramsIdVal),allowedTo('admin'),deleteUser)
+.put(protectedRoutes,validation(updateUserVal),allowedTo('admin','user'),updateUser)
 
-    userRoutes.route("/:id")
-    .get(protectedRoutes, allowedTo("admin"),validation(paramsIdVal), getAllUserById)
-    .put( protectedRoutes,validation(updateSchema),updateUser)
-    .delete(protectedRoutes,validation(paramsIdVal), deleteUser)    
-    .patch(protectedRoutes,validation(changePasswordSchema), changePassword)
 
-export default userRoutes
+
+export default userRouter

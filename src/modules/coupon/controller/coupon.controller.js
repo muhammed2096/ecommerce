@@ -1,44 +1,43 @@
+import { couponModel } from '../../../../database/models/coupon.model.js';
+import { catchError } from '../../../middleware/catchError.js'
+import { apiFeatures } from '../../../utilties/apiFeature.js';
+import { appError } from '../../../utilties/appError.js';
+import { deleteOne } from '../../handler/apiHandler.js';
 
-
-import { handleAsyncError } from "../../../middleware/handleAsyncError.js";
-import { appError } from "../../../utilties/appError.js";
-import { deleteOne } from "../../handler/apiHandler.js";
-import { apiFeatures } from "../../../utilties/apiFeature.js";
-import couponModel from "../../../../database/models/coupon.model.js";
-
-const addCoupon = handleAsyncError(async (req, res, next)=>{
-    let isCouponExist = await couponModel.findOne({ code:req.body.code })
-    if(isCouponExist) next(new appError('Coupon is exist :)'))
-    let preCoupon = new couponModel(req.body);
-    let addedCoupon = await preCoupon.save()
-    res.json({message:"Success", addedCoupon})
+const addCoupon = catchError(async (req, res, next) => {
+    let isCouponExist = await couponModel.findOne({ code: req.body.code })
+    console.log(isCouponExist);
+    if (isCouponExist) return next(new AppError('you are created Coupon before', 409))
+    let Coupon = new couponModel(req.body)
+    await Coupon.save()
+    !Coupon && next(new appError('invalid data', 404))
+    Coupon && res.send({ msg: 'success', Coupon })
 })
 
-const getAllCoupon = handleAsyncError(async (req, res, next)=>{
-    let features = new apiFeatures(couponModel.find({}), req.query).pagination().filter().sort().fields().keyword()
-    let allCoupon = await features.mongooseQuery
-    res.json({message:"Success",page:features.pageNumber, allCoupon})
+
+const getAllCoupon = catchError(async (req, res, next) => {
+    let apiFeature = new apiFeatures(couponModel.find({}), req.query).fields().pagenation().sort().filter().search()
+    let coupon = await apiFeature.mongoseQuery
+    !coupon && next(new appError('coupon not found', 404))
+    coupon && res.send({ msg: 'success', page: apiFeature.pageNumber, coupon })
 })
 
-const getCouponById = handleAsyncError(async (req, res, next)=>{
-    let coupon = await couponModel.findById(req.params.id);
-    let url = await QRCode.toDataURL(coupon.code)
-    res.json({message:"Success", coupon, url})
+const getSingleCoupon = catchError(async (req, res, next) => {
+    let coupon = await couponModel.findById(req.params.id)
+    !coupon && next(new appError('coupon not found', 404))
+    coupon && res.send({ msg: 'success', coupon })
 })
-
-const updateCoupon = handleAsyncError(async (req, res, next)=>{
-    let updatedCoupon = await couponModel.findOneAndUpdate({_id:req.params.id, user:req.user._id}, req.body, {new:true})
-    updatedCoupon && res.json({message:"Success", updatedCoupon})
-    !updatedCoupon && next(new appError("Coupon not found ! :(", 401))   
-}
-)
-
+const updateCoupon = catchError(async (req, res, next) => {
+    let coupon = await couponModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    !coupon && next(new appError('coupon not found', 404))
+    coupon && res.send({ msg: 'success', coupon })
+})
 const deleteCoupon = deleteOne(couponModel)
 
 export {
     addCoupon,
     getAllCoupon,
-    getCouponById,
     updateCoupon,
-    deleteCoupon 
+    getSingleCoupon,
+    deleteCoupon
 }

@@ -1,27 +1,23 @@
-import nodemailer from "nodemailer"
-import { emailTemp } from "./emailTemp.js";
+import { createTransport } from "nodemailer";
 
-export const sendEmail = async (options)=>{
-    const transporter = nodemailer.createTransport({
-        service:"gmail",
+export function sendEmail(verifyCode, email) {
+    const transporter = createTransport({
+        service: 'gmail',
         auth: {
-          // TODO: replace `user` and `pass` values from <https://forwardemail.net>
-          user: "test011524@gmail.com",
-          pass: "rbmfawkhxwjrrfle",
+            user: "test011524@gmail.com",
+            pass: "rbmfawkhxwjrrfle",
         },
-      })
-    
-        // send mail with defined transport object
+    });
+    async function main() {
         const info = await transporter.sendMail({
-          from: '"Fred Foo 👻" <test011524@gmail.com>', // sender address
-          to: options.email, // list of receivers
-          subject: "Hello ✔", // Subject line
-          text: "Hello world?", // plain text body
-          html: emailTemp(options.api), // html body
+            from: '"Travel Account verify" <test011524@gmail.com>', // sender address
+            to: email, // list of receivers
+            subject: "Welcome", // Subject line
+            text: `Your verify code is ${verifyCode} `, // plain text body
+            html: ``, // html body
         });
-      
         console.log("Message sent: %s", info.messageId);
-    
-      
-      
+    }
+
+    main().catch(console.error);
 }

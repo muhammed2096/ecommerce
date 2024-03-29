@@ -1,29 +1,22 @@
-import Joi from "joi"
+import joi from 'joi'
 
-export const addSubCategorySchema = Joi.object({
-    title: Joi.string().min(3).max(30).required(),
-    category: Joi.string().hex().length(24).required(0),
-    image: Joi.object({
-        fieldname: Joi.string().required(),
-        originalname: Joi.string().required(),
-        encoding: Joi.string().required(),
-        mimetype: Joi.string().valid('image/jpeg', 'image/png', 'image/jpg').required(), 
-        destination: Joi.string().required(),
-        filename: Joi.string().required(),
-        path: Joi.string().required(),
-        size: Joi.number().max(5242880).required()
-    }).required()
+const addSubCategoryValidation = joi.object({
+    name: joi.string().min(2).max(200).trim().required(),
+    category: joi.string().hex().length(24).required(),
+    createdBy: joi.string().hex().length(24)
 })
 
-export const getSubCategoryByIdSchema = Joi.object({
-    id: Joi.string().hex().length(24).required()
+const paramValidation = joi.object({
+    id: joi.string().hex().length(24).required()
 })
-
-export const updateSubCategorySchema = Joi.object({
-    title: Joi.string().min(3).max(30).required(),
-    id: Joi.string().hex().length(24).required()
+const updateSubCategoryValidation = joi.object({
+    id: joi.string().hex().length(24).required(),
+    name: joi.string().min(2).max(200).trim(),
+    category: joi.string().hex().length(24),
+    createdBy: joi.string().hex().length(24)
 })
-
-export const deleteSubCategorySchema = Joi.object({
-    id: Joi.string().hex().length(24).required()
-})
+export {
+    addSubCategoryValidation,
+    paramValidation,
+    updateSubCategoryValidation
+}

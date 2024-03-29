@@ -1,34 +1,28 @@
 
-
-import { handleAsyncError } from "../../../middleware/handleAsyncError.js";
-import { appError } from "../../../utilties/appError.js";
-import userModel from "../../../../database/models/user.model.js";
-
+import { userModel } from '../../../../database/models/user.model.js'
+import { catchError } from '../../../middleware/catchError.js'
+import { appError } from '../../../utilties/appError.js'
 
 
-const addAddress = handleAsyncError(async (req, res)=>{
-    let address = await userModel.findOneAndUpdate(req.user._id, {$addToSet:{addresses:req.body}}, {new:true})
-    address && res.json({message:"Success", address:address.addresses})
-    !address && next(new appError("address not found ! :(", 401))   
-}
-)
+const addAddress = catchError(async (req, res, next) => {
+    let address = await userModel.findByIdAndUpdate(req.user._id, { $addToSet: { address: req.body } }, { new: true })
+    !address && next(new appError('address not found', 404))
+    address && res.send({ msg: 'success', address: address.address })
+})
+const removeAddress = catchError(async (req, res, next) => {
+    let address = await userModel.findByIdAndUpdate(req.user._id, { $pull: { address: { _id: req.params.id } } }, { new: true })
+    !address && next(new appError('Addrxess not found', 404))
+    address && res.send({ msg: 'success', address: address.address })
+})
+const getLoggedAddress = catchError(async (req, res, next) => {
+    let { address } = await userModel.findById(req.user._id)
+    address && res.send({ msg: 'success', address })
+})
 
-const removeAddress = handleAsyncError(async (req, res)=>{
-    let address = await userModel.findOneAndUpdate(req.user._id, {$pull:{addresses:{_id:req.params.id}}}, {new:true})
-    address && res.json({message:"Success", address:address.addresses})
-    !address && next(new appError("address not found ! :(", 401))   
-}
-)
-const getLoggedUserAddress = handleAsyncError(async (req, res)=>{
-    let {addresses} = await userModel.findById(req.user._id)
-    addresses && res.json({message:"Success", addresses})
-    !addresses && next(new appError("address not found ! :(", 401))   
-}
-)
 
 
 export {
-addAddress,
-removeAddress,
-getLoggedUserAddress
+    addAddress,
+    removeAddress,
+    getLoggedAddress
 }

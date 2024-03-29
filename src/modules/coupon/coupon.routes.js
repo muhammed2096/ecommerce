@@ -1,19 +1,19 @@
-import express from "express"
-import { validation } from "../../middleware/validation.js"
-import { addCoupon, deleteCoupon, getAllCoupon, getCouponById, updateCoupon } from "./controller/coupon.controller.js"
-import { addCouoponSchema, deleteCouponSchema, getCouponByIdSchema, updateCouponSchema } from "./controller/coupon.validator.js"
-import { allowedTo, protectedRoutes } from "../auth/auth.controller.js"
+import express from 'express'
+import { validation } from '../../middleware/validation.js'
+import { allowedTo, protectedRoutes } from '../auth/auth.controller.js'
+import { addCoupon, deleteCoupon, getAllCoupon, getSingleCoupon, updateCoupon } from './controller/coupon.controller.js'
+import { addCouponValidation, paramValidation, updateCouponValidation } from './controller/coupon.validator.js'
 
 
-const couponRoutes = express.Router()
+const couponRouter = express.Router()
+couponRouter.use(protectedRoutes, allowedTo('admin'))
+couponRouter
+    .route('/')
+    .post(validation(addCouponValidation), addCoupon)
+    .get(getAllCoupon)
 
-couponRoutes.route("/")
-    .post(protectedRoutes, allowedTo("admin"), validation(addCouoponSchema), addCoupon)
-    .get(protectedRoutes, allowedTo("admin"), getAllCoupon)
-
-    couponRoutes.route("/:id")
-    .get(protectedRoutes, allowedTo("admin"), validation(getCouponByIdSchema), getCouponById)
-    .patch(protectedRoutes, allowedTo("admin"), validation(updateCouponSchema), updateCoupon)
-    .delete(protectedRoutes, allowedTo("admin"), validation(deleteCouponSchema), deleteCoupon)    
-
-export default couponRoutes
+couponRouter.route('/:id')
+    .get(validation(paramValidation), getSingleCoupon)
+    .put(validation(updateCouponValidation), updateCoupon)
+    .delete(validation(paramValidation), deleteCoupon)
+export default couponRouter

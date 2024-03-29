@@ -1,9 +1,17 @@
-import Joi from "joi"
 
-export const addToWishlistSchema = Joi.object({
-    product:Joi.string().hex().length(24).required()
-})
+import joi from 'joi'
 
-export const deleteWishListSchema = Joi.object({
-    id: Joi.string().hex().length(24).required()
+const addWishListVal = joi.object({
+    product: joi.string().hex().length(24).required()
 })
+const paramValidation = joi.object({
+    id: joi.string().hex().length(24).required()
+})
+const updateWishListVal = joi.object({
+    product: joi.string().hex().length(24).required()
+})
+export {
+    addWishListVal,
+    paramValidation,
+    updateWishListVal
+}

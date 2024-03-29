@@ -1,40 +1,30 @@
-import 'dotenv/config.js'
-import express from "express";
-import { dbConnection } from "./database/connection.js";
-import { allRoutes } from "./src/modules/routes.js";
-import { appError } from "./src/utilties/appError.js";
+import express from 'express'
+import { config } from 'dotenv'
+import dotenv from 'dotenv'
+dotenv.config()
 import cors from 'cors'
-import { createOnlineOrder } from './src/modules/order/controller/order.controller.js';
+import { appError } from './src/utilties/appError.js'
+import { globalError } from './src/utilties/globalError.js'
+import { bootstrab } from './src/modules/routes.js'
+import { dbConnection } from './database/connection.js'
+import { createOnlineOrder } from './src/modules/order/controller/order.controller.js'
+
 const app = express()
-const port = 3000
-app.post('/webhook', express.raw({type: 'application/json'}), createOnlineOrder);
-app.use(cors())
-app.use(express.json())
-app.use("/uploads", express.static("uploads"))
-
-  
-  app.listen(4242, () => console.log('Running on port 4242'));
 dbConnection()
+config()
+app.use(cors())
+app.post('/webhook', express.raw({ type: 'application/json' }),createOnlineOrder)
 
-
-
-allRoutes(app)
-
-app.get('/', (req, res)=>{
-    res.json("Welcome to the E-Commerce App")
+app.use(express.json())
+app.use('/uploads', express.static('uploads'))
+bootstrab(app)
+app.use('*', (req, res, next) => {
+    next(new appError('url not founded', 404))
 })
-app.use("*", (req,res,next)=>{
-    next(new appError("Url not found :(", 404))
-})
+app.use(globalError)
+const port = 3000
+app.listen(process.env.PORT || port, () => console.log(`Example app listening on port ${port}!`))
 
-
-app.use((err, req, res, next) => {
-    console.error(err.stack)
-    res.status(err.statusCode).send({message:err.message, stack:err.stack})
-})
-
-
-
-app.listen(process.env.PORT || port, ()=>{
-    console.log(`server is running on port ${port}`);
+process.on('unhandledRejection', (err) => {
+    console.log('unhandledRejection', err);
 })

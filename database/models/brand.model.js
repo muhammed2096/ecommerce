@@ -1,29 +1,31 @@
 import mongoose from "mongoose";
 
 const schema = new mongoose.Schema({
-    title:{
-        type:String,
-        required:true,
-        minLength:[3, "title is too short!"],
-        maxLength:[30, "title is too long"],
+    name: {
+        type: String,
+        unique:[true,'name is already used'],
         trim:true,
-        unique:true
+        required:true,
+        minLength:[2,'name is too short'],
+        maxLength:[20,'name is too long']
     },
-    logo:String,
     slug:{
+        type: String,
+        required: true,
+        lowercase: true
+    },
+    imageCover: {
         type:String,
         required:true,
-        lowercase:true
     },
     createdBy:{
         type:mongoose.Types.ObjectId,
-        ref:"User"
+        ref:'user'
     }
-},{
-    timestamps:true
+},{ timestamps: true })
+
+schema.post('init',function(doc){
+    doc.logo = process.env.BASE_URL + 'uploads/' + doc.logo
 })
-schema.post("init", function(doc){
-    doc.image = process.env.BASE_URL +"uploads/"+ doc.image
-})
-const brandModel = mongoose.model("Brand", schema);
-export default brandModel 
+
+export const brandModel = mongoose.model('brand',schema)

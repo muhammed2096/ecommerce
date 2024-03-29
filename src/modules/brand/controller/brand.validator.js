@@ -1,28 +1,38 @@
-import Joi from "joi"
-
-export const addBrandSchema = Joi.object({
-    title: Joi.string().min(3).max(30).required(),
-    image: Joi.object({
-        fieldname: Joi.string().required(),
-        originalname: Joi.string().required(),
-        encoding: Joi.string().required(),
-        mimetype: Joi.string().valid('image/jpeg', 'image/png', 'image/jpg').required(), 
-        destination: Joi.string().required(),
-        filename: Joi.string().required(),
-        path: Joi.string().required(),
-        size: Joi.number().max(5242880).required()
-    }).required()
+import joi from 'joi'
+const addBrandValidation = joi.object({
+    name: joi.string().min(2).max(20).trim().required(),
+    imageCover: joi.object({
+        fieldname: joi.string().required(),
+        originalname: joi.string().required(),
+        encoding: joi.string().required(),
+        mimetype: joi.string().valid('image/jpeg', 'image/png', 'image/jpg').required(),
+        destination: joi.string().required(),
+        filename: joi.string().required(),
+        path: joi.string().required(),
+        size: joi.number().max(5242880).required()
+    }).required(),
+    createdBy: joi.string().hex().length(24)
 })
-
-export const getBrandByIdSchema = Joi.object({
-    id: Joi.string().hex().length(24).required()
+const paramValidation = joi.object({
+    id: joi.string().hex().length(24).required()
 })
-
-export const updateBrandSchema = Joi.object({
-    title: Joi.string().min(3).max(30),
-    id: Joi.string().hex().length(24).required()
+const updateBrandValidation = joi.object({
+    name: joi.string().min(2).max(20).trim(),
+    id: joi.string().hex().length(24).required(),
+    imageCover: joi.object({
+        fieldname: joi.string().required(),
+        originalname: joi.string().required(),
+        encoding: joi.string().required(),
+        mimetype: joi.string().valid('image/jepg', 'image/png', 'image/jpg').required(),
+        destination: joi.string().required(),
+        filename: joi.string().required(),
+        path: joi.string().required(),
+        size: joi.number().max(5242880)
+    }).optional(),
+    createdBy: joi.string().hex().length(24)
 })
-
-export const deleteBrandSchema = Joi.object({
-    id: Joi.string().hex().length(24).required()
-})
+export {
+    addBrandValidation,
+    paramValidation,
+    updateBrandValidation
+}

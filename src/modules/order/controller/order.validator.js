@@ -1,16 +1,17 @@
-import Joi from "joi"
 
-export const createOrderVal = Joi.object({
-    id: Joi.string().hex().length(24).required(),
-    shippingAddress:Joi.object({
-        street:Joi.string().trim().required(),
-        city:Joi.string().trim().required(),
-        phone:Joi.string().trim().required(),
-    }).required()
+import Joi from 'joi'
+import joi from 'joi'
+const createCashOrderVal = joi.object({
+        id: joi.string().hex().length(24).required(),
+        shippingAddress:Joi.object({
+            street:joi.string().trim().required(),
+            city:joi.string().trim().required(),
+            phone:joi.string().trim().required()
+        }).required(),
 })
 
-export const getByIdSchema = Joi.object({
-    id: Joi.string().hex().length(24).required()
-})
 
+export {
+    createCashOrderVal,
+}
 

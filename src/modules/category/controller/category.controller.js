@@ -1,45 +1,76 @@
-import categoryModel from "../../../../database/models/category.model.js";
-import slugify from "slugify";
-import { handleAsyncError } from "../../../middleware/handleAsyncError.js";
-import { appError } from "../../../utilties/appError.js";
-import { deleteOne } from "../../handler/apiHandler.js";
+import slugify from "slugify"
+import { catchError } from './../../../middleware/catchError.js'
 
+import { appError } from '../../../utilties/appError.js'
+import { categoryModel } from "../../../../database/models/category.model.js"
+import { apiFeatures } from "../../../utilties/apiFeature.js"
+import { cloudinaryConfig } from "../../../utilties/cloudinaryConfig.js"
 
-
-
-const addCategory = handleAsyncError(async (req, res)=>{
-    req.body.slug = slugify(req.body.title)
-    req.body.image = req.file.filename
-    let preCategory = new categoryModel(req.body);
-    let addedCategory = await preCategory.save()
-    res.json({message:"Success", addedCategory})
+const addCategory = catchError(async (req, res, next) => {
+    req.body.slug = slugify(req.body.name)
+    let image = await cloudinaryConfig().uploader.upload(req.file.path, {
+        folder: 'Ecommerce/category'
+    })
+    req.body.imageCover = image.url
+    let category = new categoryModel(req.body)
+    await category.save()
+    !category && next(new appError('invalid data', 404))
+    category && res.send({ msg: 'success', category })
+})
+const getAllCategory = catchError(async (req, res, next) => {
+    let apiFeature = new apiFeatures(categoryModel.find(), req.query).fields().pagenation().sort().filter().search('name')
+    let category = await apiFeature.mongoseQuery
+    !category && next(new appError('category not found', 404))
+    category && res.send({ msg: 'success', page: apiFeature.pageNumber, category })
 })
 
-const getAllCategories = handleAsyncError(async (req, res)=>{
-    let allCategories = await categoryModel.find();
-    res.json({message:"Success", allCategories})
+const getSingleCategory = catchError(async (req, res, next) => {
+    let category = await categoryModel.findById(req.params.id)
+    !category && next(new appError('category not found', 404))
+    category && res.send({ msg: 'success', category })
+})
+const updateCategory = catchError(async (req, res, next) => {
+    let { imageCover } = await categoryModel.findById(req.params.id)
+    !imageCover && next(new appError('category not found', 404))
+
+    if (req.file) {
+        let publicId = imageCover.split('/').pop().split('.')[0]
+        console.log(publicId);
+        await cloudinaryConfig().uploader.destroy(publicId, (err, result) => {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log(result);
+            }
+        });
+
+        let image = await cloudinaryConfig().uploader.upload(req.file.path, {
+            folder: 'Ecommerce/category'
+        })
+        req.body.imageCover = image.url
+    }
+
+    if (req.body.name) req.body.slug = slugify(req.body.name)
+    let category = await categoryModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    category && res.send({ msg: 'success', category })
 })
 
-const getAllCategoryById = handleAsyncError(async (req, res)=>{
-    let category = await categoryModel.findById(req.params.id);
-    res.json({message:"Success", category})
+const deleteCategory = catchError(async (req, res, next) => {
+    const category = await categoryModel.findByIdAndDelete(req.params.id)
+    !category && next(new appError('category not found', 404))
+    let publicId = category.imageCover.split('/').pop().split('.')[0]
+    await cloudinaryConfig().uploader.destroy(publicId, (err, result) => {
+        if (err) console.log(err);
+        else console.log(result);
+    })
+
+    category && res.send({ msg: 'success' })
 })
-
-const updateCategory = handleAsyncError(async (req, res)=>{
-    req.body.slug = slugify(req.body.title)
-    if(req.file) req.body.image = req.file.filename
-    let updatedCategory = await categoryModel.findByIdAndUpdate(req.params.id, req.body, {new:true})
-    updatedCategory && res.json({message:"Success", updatedCategory})
-    !updatedCategory && next(new appError("Category not found ! :(", 401))   
-}
-)
-
-const deleteCategory = deleteOne(categoryModel)
 
 export {
     addCategory,
-    getAllCategories,
-    getAllCategoryById,
+    getAllCategory,
     updateCategory,
-    deleteCategory 
+    getSingleCategory,
+    deleteCategory
 }

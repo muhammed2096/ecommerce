@@ -1,52 +1,86 @@
-
-import slugify from "slugify";
-import { handleAsyncError } from "../../../middleware/handleAsyncError.js";
-import { appError } from "../../../utilties/appError.js";
-import productModel from "../../../../database/models/product.model.js";
-import { deleteOne } from "../../handler/apiHandler.js";
+import slugify from "slugify"
+import { catchError } from '../../../middleware/catchError.js'
+import { productModel } from "../../../../database/models/product.model.js";
 import { apiFeatures } from "../../../utilties/apiFeature.js";
+import { appError } from "../../../utilties/appError.js";
+import { cloudinaryConfig } from "../../../utilties/cloudinaryConfig.js";
 
-
-
-
-
-
-const addProduct = handleAsyncError(async (req, res)=>{
+const addProduct = catchError(async (req, res, next) => {
+    const coverImageResult = await cloudinaryConfig().uploader.upload(req.files.imageCover[0].path, {
+        folder: 'Ecommerce/product/coverimage',
+    });
+    const uploadPromises = req.files.images.map(async (file) => {
+        const result = await cloudinaryConfig().uploader.upload(file.path, {
+            folder: 'Ecommerce/product/images',
+        });
+        return result.url;
+    });
+    const images = await Promise.all(uploadPromises);
+    req.body.imageCover = coverImageResult.url;
+    req.body.images = images;
     req.body.slug = slugify(req.body.title)
-    req.body.imageCover = req.files.imageCover[0].filename
-    req.body.images = req.files.images.map(ele => ele.filename)
-    let preProduct = new productModel(req.body);
-    let added = await preProduct.save()
-    res.json({message:"Success", added})
+    let product = new productModel(req.body);
+    await product.save();
+
+    if (!product) {
+        return next(new appError('Invalid data', 404));
+    }
+
+    res.status(200).json({ msg: 'success', product });
+
+});
+const getAllProduct = catchError(async (req, res, next) => {
+    let apiFeaturee = new apiFeatures(productModel.find().populate('myReviews'), req.query).fields().pagenation().sort().filter().search('title', 'description')
+    let product = await apiFeaturee.mongoseQuery
+    !product && next(new appError('Product not found', 404))
+    product && res.send({ msg: 'success', page: apiFeaturee.pageNumber, product })
 })
 
-const getAllProducts = handleAsyncError(async (req, res, next)=>{
-    let features = new apiFeatures(productModel.find(), req.query).pagination().filter().sort().fields().keyword()
-    let products = await features.mongooseQuery
-    res.json({message:"Success",page:features.pageNumber, products})
-}) 
-
-const getAllProductById = handleAsyncError(async (req, res)=>{
-    let product = await productModel.findById(req.params.id);
-    res.json({message:"Success", product})
+const getSingleProduct = catchError(async (req, res, next) => {
+    let product = await productModel.findById(req.params.id).populate('myReviews')
+    !product && next(new appError('Product not found', 404))
+    product && res.send({ msg: 'success', product })
 })
+const updateProduct = async (req, res, next) => {
+    let product = await productModel.findById(req.params.id)
+    if (req.body.title) req.body.slug = slugify(req.body.title)
+    if (req.file) {
+        let publicId = product.imageCover.split('/').pop().split('.')[0]
+        await cloudinaryConfig().uploader.destroy(publicId, (err, result) => {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log(result);
+            }
+        });
 
-const updateProduct = handleAsyncError(async (req, res)=>{
-    req.body.slug = slugify(req.body.title)
-    if(req.files.imageCover) req.body.imageCover = req.files.imageCover[0].filename;
-    if(req.files.images) req.body.images = req.files.images.map(ele => ele.filename);
-    let updatedProduct = await productModel.findByIdAndUpdate(req.params.id, req.body, {new:true})
-    updatedProduct && res.json({message:"Success", updatedProduct})
-    !updatedProduct && next(new appError("Product not found ! :(", 401))   
+        let image = await cloudinaryConfig().uploader.upload(req.file.path, {
+            folder: 'Ecommerce/product'
+        })
+        req.body.imageCover = image.url
+    }
+    let updatedproduct = await productModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    !updatedproduct && next(new appError('faild to update', 404))
+    updatedproduct && res.send({ msg: 'success', updatedproduct })
 }
-)
-
-const deleteProduct = deleteOne(productModel)
+const deleteProduct = catchError(async (req, res, next) => {
+    const product = await productModel.findByIdAndDelete(req.params.id)
+    let publicId = product.imageCover.split('/').pop().split('.')[0]
+    await cloudinaryConfig().uploader.destroy(publicId, (err, result) => {
+        if (err) {
+            console.error(err);
+        } else {
+            console.log(result);
+        }
+    });
+    !product && next(new appError('Product not found', 404))
+    product && res.send({ msg: 'success' })
+})
 
 export {
     addProduct,
-    getAllProducts,
-    getAllProductById,
+    getAllProduct,
     updateProduct,
-    deleteProduct 
+    getSingleProduct,
+    deleteProduct
 }

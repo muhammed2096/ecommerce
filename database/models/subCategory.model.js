@@ -1,36 +1,32 @@
 import mongoose from "mongoose";
 
 const schema = new mongoose.Schema({
-    title:{
-        type:String,
-        required:true,
-        minLength:[3, "title is too short!"],
-        maxLength:[30, "title is too long"],
+    name: {
+        type: String,
+        unique:[true,'name already used'],
         trim:true,
-        unique:true
-    },
-    image:String,
-    slug:{
-        type:String,
         required:true,
-        lowercase:true
+        minLength:[2,'name is too short'],
+        maxLength:[200,'name is too long']
+    },
+    slug:{
+        type: String,
+        required: true,
+        lowercase: true
     },
     category:{
-        type:mongoose.Types.ObjectId,
-        ref:"Category"
+        type: mongoose.Types.ObjectId,
+        required: true,
+        ref:'category'
     },
     createdBy:{
         type:mongoose.Types.ObjectId,
-        ref:"User"
+        ref:'user'
     }
-},{
-    timestamps:true
-})
-schema.post("init", function(doc){
-    doc.image = process.env.BASE_URL +"uploads/"+ doc.image
-})
-schema.pre('find', function(){
+},{ timestamps: true })
+
+schema.pre('find',function(){
     this.populate('category')
 })
-const subCategoryModel = mongoose.model("SubCategory", schema);
-export default subCategoryModel
+
+export const subCategoryModel = mongoose.model('subCategory',schema)

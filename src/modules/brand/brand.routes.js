@@ -1,19 +1,21 @@
-import express from "express"
-import { validation } from "../../middleware/validation.js"
-import { uploadSingle } from "../../utilties/fileUpload.js"
-import { addBrand, deleteBrand, getAllBrandById, getAllBrands, updateBrand } from "./controller/brand.controller.js"
-import { addBrandSchema, deleteBrandSchema, getBrandByIdSchema, updateBrandSchema } from "./controller/brand.validator.js"
-import { allowedTo, protectedRoutes } from "../auth/auth.controller.js"
+import express from 'express'
 
-const brandRoutes = express.Router()
+import { validation } from '../../middleware/validation.js'
 
-brandRoutes.route("/")
-    .post(protectedRoutes, allowedTo("admin"),uploadSingle('image'), validation(addBrandSchema), addBrand)
-    .get(protectedRoutes,allowedTo("admin"),getAllBrands)
+import { addBrand, deleteBrand, getAllBrand, getSingleBrand, updateBrand } from './controller/brand.controller.js'
+import { addBrandValidation, paramValidation, updateBrandValidation } from './controller/brand.validator.js'
+import { uploadsingleFile } from '../../utilties/fileUpload.js'
 
-    brandRoutes.route("/:id")
-    .get(protectedRoutes,allowedTo("admin"),validation(getBrandByIdSchema), getAllBrandById)
-    .patch(protectedRoutes,allowedTo("admin"),validation(updateBrandSchema), updateBrand)
-    .delete(protectedRoutes,allowedTo("admin"),validation(deleteBrandSchema), deleteBrand)    
+const brandRouter = express.Router()
 
-export default brandRoutes
+brandRouter
+    .route('/')
+    .post(uploadsingleFile('imageCover'), validation(addBrandValidation), addBrand)
+    .get(getAllBrand)
+
+brandRouter
+    .route('/:id')
+    .get(validation(paramValidation), getSingleBrand)
+    .put(uploadsingleFile('imageCover'), validation(updateBrandValidation), updateBrand)
+    .delete(validation(paramValidation), deleteBrand)
+export default brandRouter

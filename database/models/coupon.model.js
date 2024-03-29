@@ -1,27 +1,25 @@
+
 import mongoose from "mongoose";
 
 const schema = new mongoose.Schema({
+    discount:{
+        type:Number,
+        min: 0,
+        required:true
+    },
+    expire:{
+        type: Date,
+        required:true
+    },
     code:{
         type:String,
-        required:true,
         trim:true,
-        unique:true
+        required:true
     },
     createdBy:{
         type:mongoose.Types.ObjectId,
-        ref:"User"
-    },
-    discount:{
-        type:Number,
-        min:0,
-
-    },
-    expires:{
-        type:Date
+        ref:'user'
     }
-},{
-    timestamps:true
-})
+},{ timestamps: true })
 
-const couponModel = mongoose.model("Coupon", schema);
-export default couponModel
+export const couponModel = mongoose.model('coupon',schema)
